@@ -2,10 +2,10 @@ import streamlit as st
 import pandas as pd
 from io import BytesIO
 import qrcode
+import os
 
 # Configuration de la page
 st.set_page_config(page_title="Quiz Interactif 🎓", page_icon="🎯", layout="centered")
-
 st.title("🎯 Quiz Interactif – Par Romaisae")
 
 # =========================
@@ -50,15 +50,17 @@ if st.button("✅ Soumettre mes réponses"):
     if nom.strip() == "":
         st.warning("⚠️ Veuillez entrer votre nom avant de soumettre.")
     else:
-        # Enregistrer les résultats
         new_data = pd.DataFrame([[nom, email, score]], columns=["Nom", "Email", "Score"])
-        try:
+
+        # Vérifier si le CSV existe et n'est pas vide
+        if os.path.exists("scores.csv") and os.path.getsize("scores.csv") > 0:
             old_data = pd.read_csv("scores.csv")
             data = pd.concat([old_data, new_data], ignore_index=True)
-        except FileNotFoundError:
+        else:
             data = new_data
-        data.to_csv("scores.csv", index=False)
 
+        # Sauvegarder
+        data.to_csv("scores.csv", index=False)
         st.success(f"Merci {nom}! Ton score est **{score}/10** 🏆")
 
 # =========================
@@ -67,18 +69,22 @@ if st.button("✅ Soumettre mes réponses"):
 st.divider()
 st.subheader("📊 Classement en direct")
 
-try:
+if os.path.exists("scores.csv") and os.path.getsize("scores.csv") > 0:
     df = pd.read_csv("scores.csv")
-    df = df.sort_values(by="Score", ascending=False)
-    st.dataframe(df, hide_index=True, use_container_width=True)
+    if "Score" not in df.columns:
+        st.error("Erreur: colonne 'Score' manquante dans le CSV")
+    else:
+        df = df.sort_values(by="Score", ascending=False)
+        st.dataframe(df, hide_index=True, use_container_width=True)
 
-    # Afficher le gagnant
-    gagnant = df.iloc[0]
-    st.success(f"🥇 Le gagnant actuel est **{gagnant['Nom']}** avec un score de **{gagnant['Score']}/10** !")
+        # Afficher le gagnant
+        if not df.empty:
+            gagnant = df.iloc[0]
+            st.success(f"🥇 Le gagnant actuel est **{gagnant['Nom']}** avec un score de **{gagnant['Score']}/10** !")
 
-    # Graphique
-    st.bar_chart(df.set_index("Nom")["Score"])
-except FileNotFoundError:
+        # Graphique
+        st.bar_chart(df.set_index("Nom")["Score"])
+else:
     st.info("Aucun score enregistré pour le moment.")
 
 # =========================
@@ -87,10 +93,11 @@ except FileNotFoundError:
 st.divider()
 st.subheader("📱 Partage du quiz")
 
-url = "https://romaisae-quiz.streamlit.app"  # ⚠️ À modifier APRÈS déploiement
+url = "https://romaisae-quiz.streamlit.app"  # ⚠️ À modifier après déploiement
 qr = qrcode.make(url)
 buf = BytesIO()
 qr.save(buf, format="PNG")
 st.image(buf.getvalue(), caption="Scannez pour participer au quiz 📲", width=200)
 st.write("Ou cliquez directement ici :", f"[{url}]({url})")
+
 
