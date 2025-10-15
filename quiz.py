@@ -4,12 +4,14 @@ from io import BytesIO
 import qrcode
 import os
 
-# Configuration de la page
+# =========================
+# CONFIGURATION DE LA PAGE
+# =========================
 st.set_page_config(page_title="Quiz Interactif 🎓", page_icon="🎯", layout="centered")
 st.title("🎯 Quiz Interactif – Par Romaisae")
 
 # =========================
-#     PARTIE : QUESTIONS
+# QUESTIONS DU QUIZ
 # =========================
 questions = {
     "1️⃣ Quelle est la capitale du Maroc ?": ["Rabat", "Casablanca", "Marrakech", "Rabat"],
@@ -25,14 +27,14 @@ questions = {
 }
 
 # =========================
-#     PARTIE : IDENTITÉ
+# IDENTITÉ DE L'UTILISATEUR
 # =========================
 st.subheader("🧑 Identifiez-vous avant de commencer")
 nom = st.text_input("Nom et prénom :")
 email = st.text_input("Adresse e-mail (facultative) :")
 
 # =========================
-#     PARTIE : QUIZ
+# QUIZ
 # =========================
 score = 0
 st.divider()
@@ -44,7 +46,7 @@ for question, options in questions.items():
         score += 1
 
 # =========================
-#     PARTIE : ENREGISTREMENT
+# SOUMISSION DES RÉPONSES
 # =========================
 if st.button("✅ Soumettre mes réponses"):
     if nom.strip() == "":
@@ -64,7 +66,7 @@ if st.button("✅ Soumettre mes réponses"):
         st.success(f"Merci {nom}! Ton score est **{score}/10** 🏆")
 
 # =========================
-#     PARTIE : TABLEAU DES SCORES
+# CLASSEMENT
 # =========================
 st.divider()
 st.subheader("📊 Classement en direct")
@@ -74,10 +76,13 @@ if os.path.exists("scores.csv") and os.path.getsize("scores.csv") > 0:
     if "Score" not in df.columns:
         st.error("Erreur: colonne 'Score' manquante dans le CSV")
     else:
+        # Trier par score
         df = df.sort_values(by="Score", ascending=False)
+
+        # Afficher le DataFrame
         st.dataframe(df, hide_index=True, use_container_width=True)
 
-        # Afficher le gagnant
+        # Gagnant
         if not df.empty:
             gagnant = df.iloc[0]
             st.success(f"🥇 Le gagnant actuel est **{gagnant['Nom']}** avec un score de **{gagnant['Score']}/10** !")
@@ -88,7 +93,7 @@ else:
     st.info("Aucun score enregistré pour le moment.")
 
 # =========================
-#     PARTIE : QR CODE
+# PARTAGE QR CODE
 # =========================
 st.divider()
 st.subheader("📱 Partage du quiz")
@@ -99,5 +104,6 @@ buf = BytesIO()
 qr.save(buf, format="PNG")
 st.image(buf.getvalue(), caption="Scannez pour participer au quiz 📲", width=200)
 st.write("Ou cliquez directement ici :", f"[{url}]({url})")
+
 
 
