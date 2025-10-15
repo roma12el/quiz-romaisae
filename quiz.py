@@ -46,51 +46,7 @@ for question, options in questions.items():
         score += 1
 
 # =========================
-# SOUMISSION DES RÉPONSES
-# =========================
-if st.button("✅ Soumettre mes réponses"):
-    if nom.strip() == "":
-        st.warning("⚠️ Veuillez entrer votre nom avant de soumettre.")
-    else:
-        new_data = pd.DataFrame([[nom, email, score]], columns=["Nom", "Email", "Score"])
 
-        # Vérifier si le CSV existe et n'est pas vide
-        if os.path.exists("scores.csv") and os.path.getsize("scores.csv") > 0:
-            old_data = pd.read_csv("scores.csv")
-            data = pd.concat([old_data, new_data], ignore_index=True)
-        else:
-            data = new_data
-
-        # Sauvegarder
-        data.to_csv("scores.csv", index=False)
-        st.success(f"Merci {nom}! Ton score est **{score}/10** 🏆")
-
-# =========================
-# CLASSEMENT
-# =========================
-st.divider()
-st.subheader("📊 Classement en direct")
-
-if os.path.exists("scores.csv") and os.path.getsize("scores.csv") > 0:
-    df = pd.read_csv("scores.csv")
-    if "Score" not in df.columns:
-        st.error("Erreur: colonne 'Score' manquante dans le CSV")
-    else:
-        # Trier par score
-        df = df.sort_values(by="Score", ascending=False)
-
-        # Afficher le DataFrame
-        st.dataframe(df, hide_index=True, use_container_width=True)
-
-        # Gagnant
-        if not df.empty:
-            gagnant = df.iloc[0]
-            st.success(f"🥇 Le gagnant actuel est **{gagnant['Nom']}** avec un score de **{gagnant['Score']}/10** !")
-
-        # Graphique
-        st.bar_chart(df.set_index("Nom")["Score"])
-else:
-    st.info("Aucun score enregistré pour le moment.")
 
 # =========================
 # PARTAGE QR CODE
@@ -104,6 +60,7 @@ buf = BytesIO()
 qr.save(buf, format="PNG")
 st.image(buf.getvalue(), caption="Scannez pour participer au quiz 📲", width=200)
 st.write("Ou cliquez directement ici :", f"[{url}]({url})")
+
 
 
 
