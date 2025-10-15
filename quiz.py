@@ -54,12 +54,13 @@ for question, options in questions.items():
 st.divider()
 st.subheader("📱 Partage du quiz")
 
-url = "https://romaisae-quiz.streamlit.app"  # ⚠️ À modifier après déploiement
+url = "https://romaquiz.streamlit.app/"  # ⚠️ À modifier après déploiement
 qr = qrcode.make(url)
 buf = BytesIO()
 qr.save(buf, format="PNG")
 st.image(buf.getvalue(), caption="Scannez pour participer au quiz 📲", width=200)
 st.write("Ou cliquez directement ici :", f"[{url}]({url})")
+
 
 
 
