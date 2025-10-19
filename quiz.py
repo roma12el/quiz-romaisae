@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 # =========================
 # AFFICHAGE DE L'IMAGE D'EN-TÊTE
 # =========================
-st.image("pag de garde .png", use_container_width=True)
+st.image("pag de garde.png", use_container_width=True)
 
 st.set_page_config(page_title="Quiz – Réglementation des Marchés Financiers", layout="centered")
 st.title("Quiz : Réglementation des Marchés Financiers et Rôle des Autorités Financières")
@@ -161,5 +161,6 @@ buf = BytesIO()
 qr.save(buf, format="PNG")
 st.image(buf.getvalue(), caption="Scannez pour accéder au quiz", width=200)
 st.write("Ou cliquez sur ce lien :", f"[{url}]({url})")
+
 
 
