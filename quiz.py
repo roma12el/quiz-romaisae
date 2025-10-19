@@ -145,41 +145,41 @@ if st.button("Soumettre mes réponses"):
         </div>
         """, unsafe_allow_html=True)
 
-        # =========================
-        # SECTION PROFESSEUR
-        # =========================
-        st.divider()
-        st.subheader("Résultats et Statistiques")
-        password = st.text_input("Mot de passe enseignant :", type="password")
+       # =========================
+# SECTION PROFESSEUR
+# =========================
+st.divider()
+st.subheader("Résultats et Statistiques")
+password = st.text_input("Mot de passe enseignant :", type="password")
 
-        if password == "prof2025":
-            st.success("Accès autorisé")
+if password == "prof2025":
+    st.success("Accès autorisé")
 
-            df = pd.read_csv("scores.csv")
-            classement = df.sort_values(by="Score", ascending=False).reset_index(drop=True)
-            st.dataframe(classement, use_container_width=True)
+    df = pd.read_csv("scores.csv")
+    classement = df.sort_values(by="Score", ascending=False).reset_index(drop=True)
+    st.dataframe(classement, use_container_width=True)
 
-            gagnant = classement.iloc[0]
-            st.markdown(f"Gagnant actuel : **{gagnant['Nom']}** avec un score de {gagnant['Score']}/{total}")
+    gagnant = classement.iloc[0]
+    st.markdown(f"Gagnant actuel : **{gagnant['Nom']}** avec un score de {gagnant['Score']}/{len(questions)}")
 
-            st.subheader("Statistiques globales par question")
-            question_scores = {q: df[q].mean() * 100 for q in questions}
-            stats_df = pd.DataFrame({
-                "Question": list(question_scores.keys()),
-                "Taux de réussite (%)": list(question_scores.values())
-            })
-            st.bar_chart(stats_df.set_index("Question"))
+    st.subheader("Statistiques globales par question")
+    question_scores = {q: df[q].mean() * 100 for q in questions}
+    stats_df = pd.DataFrame({
+        "Question": list(question_scores.keys()),
+        "Taux de réussite (%)": list(question_scores.values())
+    })
+    st.bar_chart(stats_df.set_index("Question"))
 
-            moyenne_globale = round(df["Pourcentage"].mean(), 2)
-            st.info(f"Taux de réussite moyen de l’ensemble des participants : {moyenne_globale}%")
+    moyenne_globale = round(df["Pourcentage"].mean(), 2)
+    st.info(f"Taux de réussite moyen de l’ensemble des participants : {moyenne_globale}%")
 
-            meilleure = stats_df.loc[stats_df["Taux de réussite (%)"].idxmax()]
-            pire = stats_df.loc[stats_df["Taux de réussite (%)"].idxmin()]
-            st.success(f"Question la plus réussie : {meilleure['Question']} ({meilleure['Taux de réussite (%)']:.1f}%)")
-            st.error(f"Question la moins réussie : {pire['Question']} ({pire['Taux de réussite (%)']:.1f}%)")
-        else:
-            if password:
-                st.error("Mot de passe incorrect.")
+    meilleure = stats_df.loc[stats_df["Taux de réussite (%)"].idxmax()]
+    pire = stats_df.loc[stats_df["Taux de réussite (%)"].idxmin()]
+    st.success(f"Question la plus réussie : {meilleure['Question']} ({meilleure['Taux de réussite (%)']:.1f}%)")
+    st.error(f"Question la moins réussie : {pire['Question']} ({pire['Taux de réussite (%)']:.1f}%)")
+elif password:
+    st.error("Mot de passe incorrect.")
+
 
 # =========================
 # PARTAGE DU QUIZ
@@ -193,6 +193,7 @@ buf = BytesIO()
 qr.save(buf, format="PNG")
 st.image(buf.getvalue(), caption="Scannez pour accéder au quiz", width=200)
 st.write("Ou cliquez sur ce lien :", f"[{url}]({url})")
+
 
 
 
