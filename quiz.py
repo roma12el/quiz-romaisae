@@ -14,10 +14,14 @@ st.set_page_config(
 )
 
 # =========================
-# AFFICHAGE DE L'IMAGE D'EN-TÊTE
+# IMAGE D’EN-TÊTE
 # =========================
-st.image("pag de garde.png", use_container_width=True)
-st.title("Quiz sur la Réglementation des Marchés Financiers et Rôle des Autorités de Marché")
+try:
+    st.image("pag de garde.png", use_container_width=True)
+except Exception:
+    st.warning("⚠️ Image d’en-tête introuvable (pag de garde.png).")
+
+st.title("📘 Quiz : Réglementation des Marchés Financiers et Rôle des Autorités")
 
 # =========================
 # QUESTIONS DU QUIZ
@@ -46,25 +50,25 @@ questions = {
 }
 
 # =========================
-# IDENTITÉ DE L'UTILISATEUR
+# IDENTITÉ UTILISATEUR
 # =========================
-st.subheader("Veuillez saisir votre nom et prénom.")
+st.subheader("👤 Veuillez saisir votre nom et prénom.")
 
 col1, col2 = st.columns([2, 1])
 with col1:
     nom = st.text_input("Nom et prénom :")
 
-# 🔹 Ajout du champ Genre avec logos jolis
+# 🔹 Genre avec icônes élégantes
 with col2:
     st.write("**Genre :**")
     colf, colm = st.columns(2)
     with colf:
         st.image("https://cdn-icons-png.flaticon.com/512/4140/4140048.png", width=60)
-        if st.button("Féminin 💖"):
+        if st.button("Féminin"):
             st.session_state["genre"] = "Féminin"
     with colm:
         st.image("https://cdn-icons-png.flaticon.com/512/4140/4140037.png", width=60)
-        if st.button("Masculin 💪"):
+        if st.button("Masculin"):
             st.session_state["genre"] = "Masculin"
 
 genre = st.session_state.get("genre", "Non spécifié")
@@ -74,7 +78,7 @@ st.info(f"👤 Genre sélectionné : **{genre}**")
 # QUIZ
 # =========================
 st.divider()
-st.write("Veuillez répondre à toutes les questions :")
+st.write("🧩 Répondez à toutes les questions :")
 
 reponses = {}
 score = 0
@@ -88,7 +92,7 @@ for question, options in questions.items():
 # =========================
 # SOUMISSION DU QUIZ
 # =========================
-if st.button("Soumettre mes réponses"):
+if st.button("📊 Soumettre mes réponses"):
     if nom.strip() == "":
         st.warning("Veuillez entrer votre nom et prénom avant de soumettre.")
     else:
@@ -99,33 +103,32 @@ if st.button("Soumettre mes réponses"):
         result = {q: (1 if reponses[q] == questions[q][-1] else 0) for q in questions}
         data_row = {"Nom": nom, "Genre": genre, "Score": score, "Pourcentage": pourcentage, **result}
 
-        # Gestion sécurisée du fichier CSV
-        if os.path.exists("scores.csv") and os.path.getsize("scores.csv") > 0:
-            try:
+        # Charger ou créer le fichier CSV
+        try:
+            if os.path.exists("scores.csv") and os.path.getsize("scores.csv") > 0:
                 df_old = pd.read_csv("scores.csv")
-            except pd.errors.EmptyDataError:
+            else:
                 df_old = pd.DataFrame(columns=["Nom", "Genre", "Score", "Pourcentage", *questions.keys()])
-        else:
+        except Exception:
             df_old = pd.DataFrame(columns=["Nom", "Genre", "Score", "Pourcentage", *questions.keys()])
 
         df = pd.concat([df_old, pd.DataFrame([data_row])], ignore_index=True)
-        df.to_csv("scores.csv", index=False)
+
+        try:
+            df.to_csv("scores.csv", index=False)
+        except Exception:
+            st.warning("⚠️ Impossible d’enregistrer les résultats (vérifiez les permissions).")
 
         st.success(f"{nom}, votre score est de {pourcentage}% ({score}/{total}).")
 
         # =========================
-        # STATISTIQUES PERSONNELLES
+        # NOTE SUR 20
         # =========================
         st.divider()
-        st.subheader("Résultats du quiz")
+        st.subheader("📈 Résultats du quiz")
 
         note_sur_20 = round((score / total) * 20, 2)
-        if note_sur_20 >= 16:
-            color = "#4CAF50"
-        elif note_sur_20 >= 10:
-            color = "#FFC107"
-        else:
-            color = "#F44336"
+        color = "#4CAF50" if note_sur_20 >= 16 else "#FFC107" if note_sur_20 >= 10 else "#F44336"
 
         st.markdown(f"""
         <div style="
@@ -153,18 +156,19 @@ if st.button("Soumettre mes réponses"):
 # SECTION PROFESSEUR
 # =========================
 st.divider()
-st.subheader("Résultats et Statistiques")
+st.subheader("📚 Résultats et Statistiques")
 password = st.text_input("Mot de passe enseignant :", type="password")
 
 if password == "prof2025":
-    st.success("Accès autorisé")
+    st.success("✅ Accès autorisé")
 
-    if os.path.exists("scores.csv") and os.path.getsize("scores.csv") > 0:
-        try:
+    try:
+        if os.path.exists("scores.csv") and os.path.getsize("scores.csv") > 0:
             df = pd.read_csv("scores.csv")
-        except pd.errors.EmptyDataError:
+        else:
             df = pd.DataFrame(columns=["Nom", "Genre", "Score", "Pourcentage", *questions.keys()])
-    else:
+    except Exception:
+        st.error("❌ Erreur lors du chargement des données.")
         df = pd.DataFrame(columns=["Nom", "Genre", "Score", "Pourcentage", *questions.keys()])
 
     if not df.empty:
@@ -172,23 +176,24 @@ if password == "prof2025":
         st.dataframe(classement, use_container_width=True)
 
         gagnant = classement.iloc[0]
-        st.markdown(f"Gagnant actuel : **{gagnant['Nom']}** avec un score de {gagnant['Score']}/{len(questions)}")
+        st.markdown(f"🏅 **{gagnant['Nom']}** est premier avec un score de {gagnant['Score']}/{len(questions)}")
 
-        # 🔹 Histogramme interactif Top 3
+        # Top 3
         top3 = classement.head(3)
         top3["Rang"] = ["🥇 Première place", "🥈 Deuxième place", "🥉 Troisième place"]
 
-        st.subheader("🏆 Classement des 3 premiers")
+        st.subheader("🏆 Top 3 des meilleurs participants")
         st.table(top3[["Rang", "Nom", "Genre", "Score", "Pourcentage"]])
 
+        # Histogramme doré / argent / bronze
         fig, ax = plt.subplots()
         ax.bar(top3["Nom"], top3["Score"], color=["gold", "silver", "#cd7f32"])
-        ax.set_title("🏅 Top 3 des meilleurs participants")
+        ax.set_title("🏅 Classement des 3 premiers")
         ax.set_xlabel("Participants")
-        ax.set_ylabel("Score sur 20")
+        ax.set_ylabel("Score (sur 20)")
         st.pyplot(fig)
 
-        # Statistiques par question
+        # Statistiques globales
         question_scores = {q: df[q].mean() * 100 for q in questions}
         stats_df = pd.DataFrame({
             "Question": list(question_scores.keys()),
@@ -197,20 +202,20 @@ if password == "prof2025":
         st.bar_chart(stats_df.set_index("Question"))
 
         moyenne_globale = round(df["Pourcentage"].mean(), 2)
-        st.info(f"Taux de réussite moyen : {moyenne_globale}%")
+        st.info(f"📊 Taux de réussite moyen : **{moyenne_globale}%**")
 
         meilleure = stats_df.loc[stats_df["Taux de réussite (%)"].idxmax()]
         pire = stats_df.loc[stats_df["Taux de réussite (%)"].idxmin()]
-        st.success(f"Question la plus réussie : {meilleure['Question']} ({meilleure['Taux de réussite (%)']:.1f}%)")
-        st.error(f"Question la moins réussie : {pire['Question']} ({pire['Taux de réussite (%)']:.1f}%)")
+        st.success(f"✅ Question la plus réussie : {meilleure['Question']} ({meilleure['Taux de réussite (%)']:.1f}%)")
+        st.error(f"⚠️ Question la moins réussie : {pire['Question']} ({pire['Taux de réussite (%)']:.1f}%)")
 elif password:
     st.error("Mot de passe incorrect.")
 
 # =========================
-# PARTAGE DU QUIZ
+# QR CODE PARTAGE
 # =========================
 st.divider()
-st.subheader("QR Code")
+st.subheader("📱 Partage du Quiz")
 
 url = "https://romaquiz.streamlit.app/"
 qr = qrcode.make(url)
@@ -218,6 +223,7 @@ buf = BytesIO()
 qr.save(buf, format="PNG")
 st.image(buf.getvalue(), caption="Scannez pour accéder au quiz", width=200)
 st.write("Ou cliquez sur ce lien :", f"[{url}]({url})")
+
 
 
 
