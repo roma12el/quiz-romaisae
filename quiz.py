@@ -8,37 +8,60 @@ import matplotlib.pyplot as plt
 # =========================
 # CONFIGURATION DE LA PAGE
 # =========================
-st.set_page_config(page_title="🎯 Quiz Interactif – Par Romaisae", page_icon="🎓", layout="centered")
-st.title("🎓 Quiz Interactif – Par Romaisae")
+# =========================
+# AFFICHAGE DE L'IMAGE D'EN-TÊTE
+# =========================
+st.image("pag de garde .png", use_container_width=True)
+
+st.set_page_config(page_title="Quiz – Réglementation des Marchés Financiers", layout="centered")
+st.title("Quiz : Réglementation des Marchés Financiers et Rôle des Autorités Financières")
 
 # =========================
 # QUESTIONS DU QUIZ
 # =========================
 questions = {
-    "1️⃣ Quelle est la capitale du Maroc ?": ["Rabat", "Casablanca", "Marrakech", "Rabat"],
-    "2️⃣ Combien font 7 + 5 ?": ["10", "11", "12", "12"],
-    "3️⃣ Quelle devise utilise-t-on au Maroc ?": ["Euro", "Dollar", "Dirham", "Dirham"],
-    "4️⃣ Qui régule le marché financier au Maroc ?": ["AMMC", "BAM", "AMF", "AMMC"],
-    "5️⃣ Quelle est la couleur du drapeau marocain ?": ["Rouge et vert", "Bleu et blanc", "Rouge et jaune", "Rouge et vert"],
-    "6️⃣ Combien de continents existe-t-il ?": ["5", "6", "7", "7"],
-    "7️⃣ Python est un ...": ["Langage de programmation", "Reptile", "Logiciel", "Langage de programmation"],
-    "8️⃣ Quel est le résultat de 9 * 9 ?": ["81", "72", "99", "81"],
-    "9️⃣ Quelle est la capitale de la France ?": ["Lyon", "Paris", "Marseille", "Paris"],
-    "🔟 En quelle année a été créée l’AMMC ?": ["2016", "2014", "2018", "2016"]
+    "1️⃣ Quelle institution supervise le marché financier au Maroc ?":
+        ["Bank Al-Maghrib", "Ministère des Finances", "AMMC", "CDG", "AMMC"],
+
+    "2️⃣ Quelle est la principale mission de l’AMMC ?":
+        ["Contrôler la fiscalité", "Protéger les investisseurs", "Émettre la monnaie", "Fixer les taux d’intérêt", "Protéger les investisseurs"],
+
+    "3️⃣ Quelle autorité est responsable de la politique monétaire ?":
+        ["AMMC", "Bank Al-Maghrib", "CDVM", "CMR", "Bank Al-Maghrib"],
+
+    "4️⃣ Quelle loi encadre le marché des valeurs mobilières au Maroc ?":
+        ["Loi 12-03", "Loi 43-12", "Loi 17-95", "Loi 20-19", "Loi 43-12"],
+
+    "5️⃣ Quel est le rôle principal d’une autorité financière ?":
+        ["Favoriser la spéculation", "Réguler et contrôler les marchés", "Fixer les prix des actions", "Protéger les banques", "Réguler et contrôler les marchés"],
+
+    "6️⃣ Quelle entité veille à la stabilité du système bancaire marocain ?":
+        ["Bank Al-Maghrib", "AMMC", "Ministère du Commerce", "Trésor Général du Royaume", "Bank Al-Maghrib"],
+
+    "7️⃣ Quelle institution gère les cotations à la Bourse de Casablanca ?":
+        ["AMMC", "Bourse de Casablanca", "Bank Al-Maghrib", "CDVM", "Bourse de Casablanca"],
+
+    "8️⃣ Quelle est la mission du Conseil Déontologique des Valeurs Mobilières (CDVM) avant sa transformation ?":
+        ["Régulation du marché financier", "Supervision des banques", "Audit des entreprises publiques", "Fiscalité des investisseurs", "Régulation du marché financier"],
+
+    "9️⃣ Quelle autorité veille à la transparence de l’information financière ?":
+        ["AMMC", "ONCF", "Ministère de l’Intérieur", "BAM", "AMMC"],
+
+    "🔟 Quelle est la principale finalité de la réglementation des marchés financiers ?":
+        ["Limiter la concurrence", "Protéger les investisseurs et assurer la confiance", "Encourager les monopoles", "Réduire les taux d’intérêt", "Protéger les investisseurs et assurer la confiance"]
 }
 
 # =========================
 # IDENTITÉ DE L'UTILISATEUR
 # =========================
-st.subheader("🧑 Identifiez-vous avant de commencer")
+st.subheader("Identification du participant")
 nom = st.text_input("Nom et prénom :")
-email = st.text_input("Adresse e-mail (facultative) :")
 
 # =========================
 # QUIZ
 # =========================
 st.divider()
-st.write("📝 Répondez aux questions ci-dessous :")
+st.write("Veuillez répondre à toutes les questions :")
 
 reponses = {}
 score = 0
@@ -50,56 +73,43 @@ for question, options in questions.items():
         score += 1
 
 # =========================
-# SOUMISSION DES RÉPONSES
+# SOUMISSION DU QUIZ
 # =========================
-if st.button("✅ Soumettre mes réponses"):
+if st.button("Soumettre mes réponses"):
     if nom.strip() == "":
-        st.warning("⚠️ Veuillez entrer votre nom avant de soumettre.")
+        st.warning("Veuillez entrer votre nom avant de soumettre.")
     else:
         total = len(questions)
         pourcentage = round((score / total) * 100, 2)
 
-        # Ligne de données du participant
+        # Préparer la ligne de données
         result = {q: (1 if reponses[q] == questions[q][-1] else 0) for q in questions}
-        data_row = {"Nom": nom, "Email": email, "Score": score, "Pourcentage": pourcentage, **result}
+        data_row = {"Nom": nom, "Score": score, "Pourcentage": pourcentage, **result}
 
-        # =========================
-        # GESTION SÉCURISÉE DU FICHIER CSV
-        # =========================
+        # Gestion du fichier CSV
         try:
             if os.path.exists("scores.csv") and os.path.getsize("scores.csv") > 0:
                 df_old = pd.read_csv("scores.csv")
             else:
-                df_old = pd.DataFrame(columns=["Nom", "Email", "Score", "Pourcentage", *questions.keys()])
+                df_old = pd.DataFrame(columns=["Nom", "Score", "Pourcentage", *questions.keys()])
         except (pd.errors.EmptyDataError, FileNotFoundError):
-            df_old = pd.DataFrame(columns=["Nom", "Email", "Score", "Pourcentage", *questions.keys()])
+            df_old = pd.DataFrame(columns=["Nom", "Score", "Pourcentage", *questions.keys()])
 
         df = pd.concat([df_old, pd.DataFrame([data_row])], ignore_index=True)
         df.to_csv("scores.csv", index=False)
 
-        # =========================
-        # RÉSULTATS
-        # =========================
-        st.success(f"🎉 Bravo {nom} ! Ton score est **{score}/10 ({pourcentage}%)**")
-
-        if score == len(questions):
-            st.markdown("🏅 **Félicitations ! Tu obtiens la Médaille d'Or du Quiz !** 🥇")
-        elif score >= 8:
-            st.markdown("🥈 Excellent ! Médaille d’Argent !")
-        elif score >= 6:
-            st.markdown("🥉 Bon travail ! Médaille de Bronze !")
-        else:
-            st.markdown("💪 Continue de t'entraîner, tu y es presque !")
+        # Résultat du participant
+        st.success(f"{nom}, votre score est de {pourcentage}% ({score}/{total}).")
 
         # =========================
         # STATISTIQUES PERSONNELLES
         # =========================
         st.divider()
-        st.subheader("📊 Tes statistiques personnelles")
+        st.subheader("Analyse de vos réponses")
 
         fig, ax = plt.subplots()
         labels = ['Bonnes réponses', 'Mauvaises réponses']
-        values = [score, len(questions) - score]
+        values = [score, total - score]
         ax.pie(values, labels=labels, autopct='%1.1f%%', startangle=90)
         st.pyplot(fig)
 
@@ -107,21 +117,20 @@ if st.button("✅ Soumettre mes réponses"):
         # SECTION PROFESSEUR
         # =========================
         st.divider()
-        st.subheader("🔒 Section Professeur – Classement et Statistiques Globales")
-        password = st.text_input("Mot de passe professeur :", type="password")
+        st.subheader("Section Enseignant – Résultats et Statistiques")
+        password = st.text_input("Mot de passe enseignant :", type="password")
 
         if password == "prof2025":
-            st.success("🔓 Accès autorisé")
+            st.success("Accès autorisé")
 
             df = pd.read_csv("scores.csv")
-
             classement = df.sort_values(by="Score", ascending=False).reset_index(drop=True)
             st.dataframe(classement, use_container_width=True)
 
             gagnant = classement.iloc[0]
-            st.markdown(f"🏆 **Gagnant actuel : {gagnant['Nom']}** – {gagnant['Score']}/10")
+            st.markdown(f"Gagnant actuel : **{gagnant['Nom']}** avec un score de {gagnant['Score']}/{total}")
 
-            st.subheader("📈 Statistiques globales par question")
+            st.subheader("Statistiques globales par question")
             question_scores = {q: df[q].mean() * 100 for q in questions}
             stats_df = pd.DataFrame({
                 "Question": list(question_scores.keys()),
@@ -130,25 +139,27 @@ if st.button("✅ Soumettre mes réponses"):
             st.bar_chart(stats_df.set_index("Question"))
 
             moyenne_globale = round(df["Pourcentage"].mean(), 2)
-            st.info(f"📊 Taux de réussite moyen de tous les participants : **{moyenne_globale}%**")
+            st.info(f"Taux de réussite moyen de l’ensemble des participants : {moyenne_globale}%")
 
             meilleure = stats_df.loc[stats_df["Taux de réussite (%)"].idxmax()]
             pire = stats_df.loc[stats_df["Taux de réussite (%)"].idxmin()]
-            st.success(f"✅ Question la plus réussie : *{meilleure['Question']}* ({meilleure['Taux de réussite (%)']:.1f}%)")
-            st.error(f"❌ Question la moins réussie : *{pire['Question']}* ({pire['Taux de réussite (%)']:.1f}%)")
+            st.success(f"Question la plus réussie : {meilleure['Question']} ({meilleure['Taux de réussite (%)']:.1f}%)")
+            st.error(f"Question la moins réussie : {pire['Question']} ({pire['Taux de réussite (%)']:.1f}%)")
         else:
             if password:
                 st.error("Mot de passe incorrect.")
 
 # =========================
-# PARTAGE QR CODE
+# PARTAGE DU QUIZ
 # =========================
 st.divider()
-st.subheader("📱 Partage du quiz")
+st.subheader("Partager le quiz")
 
 url = "https://romaquiz.streamlit.app/"  # à adapter
 qr = qrcode.make(url)
 buf = BytesIO()
 qr.save(buf, format="PNG")
-st.image(buf.getvalue(), caption="Scannez pour participer 📲", width=200)
-st.write("Ou cliquez ici :", f"[{url}]({url})")
+st.image(buf.getvalue(), caption="Scannez pour accéder au quiz", width=200)
+st.write("Ou cliquez sur ce lien :", f"[{url}]({url})")
+
+
