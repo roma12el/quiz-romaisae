@@ -4,6 +4,7 @@ from io import BytesIO
 import qrcode
 import os
 import matplotlib.pyplot as plt
+import plotly.express as px
 
 # =========================
 # CONFIGURATION DE LA PAGE
@@ -52,23 +53,21 @@ questions = {
 # =========================
 # IDENTITÉ UTILISATEUR
 # =========================
-st.subheader("👤 Veuillez saisir votre nom et prénom.")
+st.subheader("👤 Veuillez saisir vos informations")
 
 col1, col2 = st.columns([2, 1])
 with col1:
     nom = st.text_input("Nom et prénom :")
 
-# 🔹 Genre avec icônes élégantes
 with col2:
     st.write("**Genre :**")
+    # Deux colonnes avec logos harmonisés
     colf, colm = st.columns(2)
     with colf:
-        st.image("https://cdn-icons-png.flaticon.com/512/4140/4140048.png", width=60)
-        if st.button("Féminin"):
+        if st.button("👩 Féminin"):
             st.session_state["genre"] = "Féminin"
     with colm:
-        st.image("https://cdn-icons-png.flaticon.com/512/4140/4140037.png", width=60)
-        if st.button("Masculin"):
+        if st.button("👨 Masculin"):
             st.session_state["genre"] = "Masculin"
 
 genre = st.session_state.get("genre", "Non spécifié")
@@ -99,11 +98,9 @@ if st.button("📊 Soumettre mes réponses"):
         total = len(questions)
         pourcentage = round((score / total) * 100, 2)
 
-        # Préparer la ligne de données
         result = {q: (1 if reponses[q] == questions[q][-1] else 0) for q in questions}
         data_row = {"Nom": nom, "Genre": genre, "Score": score, "Pourcentage": pourcentage, **result}
 
-        # Charger ou créer le fichier CSV
         try:
             if os.path.exists("scores.csv") and os.path.getsize("scores.csv") > 0:
                 df_old = pd.read_csv("scores.csv")
@@ -121,32 +118,13 @@ if st.button("📊 Soumettre mes réponses"):
 
         st.success(f"{nom}, votre score est de {pourcentage}% ({score}/{total}).")
 
-        # =========================
         # NOTE SUR 20
-        # =========================
-        st.divider()
-        st.subheader("📈 Résultats du quiz")
-
         note_sur_20 = round((score / total) * 20, 2)
         color = "#4CAF50" if note_sur_20 >= 16 else "#FFC107" if note_sur_20 >= 10 else "#F44336"
 
         st.markdown(f"""
-        <div style="
-            background-color: #e0e0e0; 
-            border-radius: 15px; 
-            padding: 10px; 
-            width: 300px; 
-            text-align: center;
-        ">
-            <div style="
-                width: {note_sur_20*5}%; 
-                background-color: {color}; 
-                padding: 15px 0; 
-                border-radius: 15px; 
-                font-size: 24px; 
-                font-weight: bold;
-                color: white;
-            ">
+        <div style="background-color: #e0e0e0; border-radius: 15px; padding: 10px; width: 300px; text-align: center;">
+            <div style="width: {note_sur_20*5}%; background-color: {color}; padding: 15px 0; border-radius: 15px; font-size: 24px; font-weight: bold; color: white;">
                 {note_sur_20} / 20
             </div>
         </div>
@@ -173,27 +151,38 @@ if password == "prof2025":
 
     if not df.empty:
         classement = df.sort_values(by="Score", ascending=False).reset_index(drop=True)
+        
+        # --- HISTOGRAMME INTERACTIF EN PREMIER ---
+        top3 = classement.head(3).reset_index(drop=True)
+        rangs = ["🥇 Première place", "🥈 Deuxième place", "🥉 Troisième place"]
+        top3["Rang"] = rangs[:len(top3)]
+
+        st.subheader("🏆 Classement interactif des 3 premiers")
+        fig = px.bar(
+            top3,
+            x="Nom",
+            y="Score",
+            color="Rang",
+            text="Score",
+            color_discrete_map={
+                "🥇 Première place": "gold",
+                "🥈 Deuxième place": "silver",
+                "🥉 Troisième place": "#cd7f32"
+            },
+            title="🏅 Les 3 meilleures notes du quiz"
+        )
+        fig.update_traces(textposition="outside")
+        fig.update_layout(xaxis_title="Participants", yaxis_title="Score", showlegend=True)
+        st.plotly_chart(fig, use_container_width=True)
+
+        # --- TABLEAU DES RÉSULTATS COMPLET ---
+        st.subheader("📊 Détails des résultats")
         st.dataframe(classement, use_container_width=True)
 
         gagnant = classement.iloc[0]
         st.markdown(f"🏅 **{gagnant['Nom']}** est premier avec un score de {gagnant['Score']}/{len(questions)}")
 
-        # Top 3
-        top3 = classement.head(3)
-        top3["Rang"] = ["🥇 Première place", "🥈 Deuxième place", "🥉 Troisième place"]
-
-        st.subheader("🏆 Top 3 des meilleurs participants")
-        st.table(top3[["Rang", "Nom", "Genre", "Score", "Pourcentage"]])
-
-        # Histogramme doré / argent / bronze
-        fig, ax = plt.subplots()
-        ax.bar(top3["Nom"], top3["Score"], color=["gold", "silver", "#cd7f32"])
-        ax.set_title("🏅 Classement des 3 premiers")
-        ax.set_xlabel("Participants")
-        ax.set_ylabel("Score (sur 20)")
-        st.pyplot(fig)
-
-        # Statistiques globales
+        # --- ANALYSE DES QUESTIONS ---
         question_scores = {q: df[q].mean() * 100 for q in questions}
         stats_df = pd.DataFrame({
             "Question": list(question_scores.keys()),
@@ -208,6 +197,7 @@ if password == "prof2025":
         pire = stats_df.loc[stats_df["Taux de réussite (%)"].idxmin()]
         st.success(f"✅ Question la plus réussie : {meilleure['Question']} ({meilleure['Taux de réussite (%)']:.1f}%)")
         st.error(f"⚠️ Question la moins réussie : {pire['Question']} ({pire['Taux de réussite (%)']:.1f}%)")
+
 elif password:
     st.error("Mot de passe incorrect.")
 
@@ -223,6 +213,8 @@ buf = BytesIO()
 qr.save(buf, format="PNG")
 st.image(buf.getvalue(), caption="Scannez pour accéder au quiz", width=200)
 st.write("Ou cliquez sur ce lien :", f"[{url}]({url})")
+
+
 
 
 
