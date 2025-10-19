@@ -14,12 +14,12 @@ import matplotlib.pyplot as plt
 st.image("pag de garde.png", use_container_width=True)
 
 st.set_page_config(page_title="Quiz – Réglementation des Marchés Financiers", layout="centered")
-st.title("Quiz : Réglementation des Marchés Financiers et Rôle des Autorités Financières")
+st.title("Quiz sur la Réglementation des Marchés Financiers et Rôle des Autorités de Marché")
 
 # =========================
 # QUESTIONS DU QUIZ
 # =========================
-questions = {
+« Questions : (une seule chose correcte parmi) = {
     "1️⃣ Quelle institution supervise le marché financier au Maroc ?":
         ["Bank Al-Maghrib", "Ministère des Finances", "AMMC", "CDG", "AMMC"],
 
@@ -54,7 +54,7 @@ questions = {
 # =========================
 # IDENTITÉ DE L'UTILISATEUR
 # =========================
-st.subheader("Identification du participant")
+st.subheader("Veuillez saisir votre nom et prénom.")
 nom = st.text_input("Nom et prénom :")
 
 # =========================
@@ -77,7 +77,7 @@ for question, options in questions.items():
 # =========================
 if st.button("Soumettre mes réponses"):
     if nom.strip() == "":
-        st.warning("Veuillez entrer votre nom avant de soumettre.")
+        st.warning("Veuillez entrer votre nom et prénom avant de soumettre.")
     else:
         total = len(questions)
         pourcentage = round((score / total) * 100, 2)
@@ -91,9 +91,9 @@ if st.button("Soumettre mes réponses"):
             if os.path.exists("scores.csv") and os.path.getsize("scores.csv") > 0:
                 df_old = pd.read_csv("scores.csv")
             else:
-                df_old = pd.DataFrame(columns=["Nom", "Score", "Pourcentage", *questions.keys()])
+                df_old = pd.DataFrame(columns=["Nom", "Note", "Pourcentage", *questions.keys()])
         except (pd.errors.EmptyDataError, FileNotFoundError):
-            df_old = pd.DataFrame(columns=["Nom", "Score", "Pourcentage", *questions.keys()])
+            df_old = pd.DataFrame(columns=["Nom", "Note", "Pourcentage", *questions.keys()])
 
         df = pd.concat([df_old, pd.DataFrame([data_row])], ignore_index=True)
         df.to_csv("scores.csv", index=False)
@@ -102,22 +102,50 @@ if st.button("Soumettre mes réponses"):
         st.success(f"{nom}, votre score est de {pourcentage}% ({score}/{total}).")
 
         # =========================
-        # STATISTIQUES PERSONNELLES
-        # =========================
-        st.divider()
-        st.subheader("Analyse de vos réponses")
+    # STATISTIQUES PERSONNELLES
+# =========================
+st.divider()
+st.subheader("Résultats du quiz")
 
-        fig, ax = plt.subplots()
-        labels = ['Bonnes réponses', 'Mauvaises réponses']
-        values = [score, total - score]
-        ax.pie(values, labels=labels, autopct='%1.1f%%', startangle=90)
-        st.pyplot(fig)
+# Calcul de la note sur 20
+Note_sur_20 = round((Note / total) * 20, 2)  # 2 décimales
+
+# Couleur selon la performance
+if Note_sur_20 >= 16:
+    color = "#4CAF50"  # vert
+elif Note_sur_20 >= 10:
+    color = "#FFC107"  # orange
+else:
+    color = "#F44336"  # rouge
+
+# Affichage stylé avec barre de progression
+st.markdown(f"""
+<div style="
+    background-color: #e0e0e0; 
+    border-radius: 15px; 
+    padding: 10px; 
+    width: 300px; 
+    text-align: center;
+">
+    <div style="
+        width: {Note_sur_20*5}%; 
+        background-color: {color}; 
+        padding: 15px 0; 
+        border-radius: 15px; 
+        font-size: 24px; 
+        font-weight: bold;
+        color: white;
+    ">
+        {Note_sur_20} / 20
+    </div>
+</div>
+""", unsafe_allow_html=True)
 
         # =========================
         # SECTION PROFESSEUR
         # =========================
         st.divider()
-        st.subheader("Section Enseignant – Résultats et Statistiques")
+        st.subheader("Résultats et Statistiques")
         password = st.text_input("Mot de passe enseignant :", type="password")
 
         if password == "prof2025":
@@ -128,7 +156,7 @@ if st.button("Soumettre mes réponses"):
             st.dataframe(classement, use_container_width=True)
 
             gagnant = classement.iloc[0]
-            st.markdown(f"Gagnant actuel : **{gagnant['Nom']}** avec un score de {gagnant['Score']}/{total}")
+            st.markdown(f"Gagnant actuel : **{gagnant['Nom']}** avec un score de {gagnant['Note']}/{total}")
 
             st.subheader("Statistiques globales par question")
             question_scores = {q: df[q].mean() * 100 for q in questions}
@@ -153,7 +181,7 @@ if st.button("Soumettre mes réponses"):
 # PARTAGE DU QUIZ
 # =========================
 st.divider()
-st.subheader("Partager le quiz")
+st.subheader("QR Code")
 
 url = "https://romaquiz.streamlit.app/"  # à adapter
 qr = qrcode.make(url)
@@ -161,6 +189,7 @@ buf = BytesIO()
 qr.save(buf, format="PNG")
 st.image(buf.getvalue(), caption="Scannez pour accéder au quiz", width=200)
 st.write("Ou cliquez sur ce lien :", f"[{url}]({url})")
+
 
 
 
