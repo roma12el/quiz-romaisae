@@ -3,6 +3,7 @@ import pandas as pd
 from io import BytesIO
 import qrcode
 import os
+import matplotlib.pyplot as plt
 
 # =========================
 # CONFIGURATION DE LA PAGE
@@ -48,7 +49,26 @@ questions = {
 # IDENTITÉ DE L'UTILISATEUR
 # =========================
 st.subheader("Veuillez saisir votre nom et prénom.")
-nom = st.text_input("Nom et prénom :")
+
+col1, col2 = st.columns([2, 1])
+with col1:
+    nom = st.text_input("Nom et prénom :")
+
+# 🔹 Ajout du champ Genre avec logos jolis
+with col2:
+    st.write("**Genre :**")
+    colf, colm = st.columns(2)
+    with colf:
+        st.image("https://cdn-icons-png.flaticon.com/512/4140/4140048.png", width=60)
+        if st.button("Féminin 💖"):
+            st.session_state["genre"] = "Féminin"
+    with colm:
+        st.image("https://cdn-icons-png.flaticon.com/512/4140/4140037.png", width=60)
+        if st.button("Masculin 💪"):
+            st.session_state["genre"] = "Masculin"
+
+genre = st.session_state.get("genre", "Non spécifié")
+st.info(f"👤 Genre sélectionné : **{genre}**")
 
 # =========================
 # QUIZ
@@ -77,21 +97,20 @@ if st.button("Soumettre mes réponses"):
 
         # Préparer la ligne de données
         result = {q: (1 if reponses[q] == questions[q][-1] else 0) for q in questions}
-        data_row = {"Nom": nom, "Score": score, "Pourcentage": pourcentage, **result}
+        data_row = {"Nom": nom, "Genre": genre, "Score": score, "Pourcentage": pourcentage, **result}
 
         # Gestion sécurisée du fichier CSV
         if os.path.exists("scores.csv") and os.path.getsize("scores.csv") > 0:
             try:
                 df_old = pd.read_csv("scores.csv")
             except pd.errors.EmptyDataError:
-                df_old = pd.DataFrame(columns=["Nom", "Score", "Pourcentage", *questions.keys()])
+                df_old = pd.DataFrame(columns=["Nom", "Genre", "Score", "Pourcentage", *questions.keys()])
         else:
-            df_old = pd.DataFrame(columns=["Nom", "Score", "Pourcentage", *questions.keys()])
+            df_old = pd.DataFrame(columns=["Nom", "Genre", "Score", "Pourcentage", *questions.keys()])
 
         df = pd.concat([df_old, pd.DataFrame([data_row])], ignore_index=True)
         df.to_csv("scores.csv", index=False)
 
-        # Résultat du participant
         st.success(f"{nom}, votre score est de {pourcentage}% ({score}/{total}).")
 
         # =========================
@@ -100,10 +119,7 @@ if st.button("Soumettre mes réponses"):
         st.divider()
         st.subheader("Résultats du quiz")
 
-        # Note sur 20
         note_sur_20 = round((score / total) * 20, 2)
-
-        # Couleur selon performance
         if note_sur_20 >= 16:
             color = "#4CAF50"
         elif note_sur_20 >= 10:
@@ -111,7 +127,6 @@ if st.button("Soumettre mes réponses"):
         else:
             color = "#F44336"
 
-        # Barre de progression
         st.markdown(f"""
         <div style="
             background-color: #e0e0e0; 
@@ -144,14 +159,13 @@ password = st.text_input("Mot de passe enseignant :", type="password")
 if password == "prof2025":
     st.success("Accès autorisé")
 
-    # Lecture sécurisée du CSV
     if os.path.exists("scores.csv") and os.path.getsize("scores.csv") > 0:
         try:
             df = pd.read_csv("scores.csv")
         except pd.errors.EmptyDataError:
-            df = pd.DataFrame(columns=["Nom", "Score", "Pourcentage", *questions.keys()])
+            df = pd.DataFrame(columns=["Nom", "Genre", "Score", "Pourcentage", *questions.keys()])
     else:
-        df = pd.DataFrame(columns=["Nom", "Score", "Pourcentage", *questions.keys()])
+        df = pd.DataFrame(columns=["Nom", "Genre", "Score", "Pourcentage", *questions.keys()])
 
     if not df.empty:
         classement = df.sort_values(by="Score", ascending=False).reset_index(drop=True)
@@ -159,6 +173,20 @@ if password == "prof2025":
 
         gagnant = classement.iloc[0]
         st.markdown(f"Gagnant actuel : **{gagnant['Nom']}** avec un score de {gagnant['Score']}/{len(questions)}")
+
+        # 🔹 Histogramme interactif Top 3
+        top3 = classement.head(3)
+        top3["Rang"] = ["🥇 Première place", "🥈 Deuxième place", "🥉 Troisième place"]
+
+        st.subheader("🏆 Classement des 3 premiers")
+        st.table(top3[["Rang", "Nom", "Genre", "Score", "Pourcentage"]])
+
+        fig, ax = plt.subplots()
+        ax.bar(top3["Nom"], top3["Score"], color=["gold", "silver", "#cd7f32"])
+        ax.set_title("🏅 Top 3 des meilleurs participants")
+        ax.set_xlabel("Participants")
+        ax.set_ylabel("Score sur 20")
+        st.pyplot(fig)
 
         # Statistiques par question
         question_scores = {q: df[q].mean() * 100 for q in questions}
@@ -169,7 +197,7 @@ if password == "prof2025":
         st.bar_chart(stats_df.set_index("Question"))
 
         moyenne_globale = round(df["Pourcentage"].mean(), 2)
-        st.info(f"Taux de réussite moyen de l’ensemble des participants : {moyenne_globale}%")
+        st.info(f"Taux de réussite moyen : {moyenne_globale}%")
 
         meilleure = stats_df.loc[stats_df["Taux de réussite (%)"].idxmax()]
         pire = stats_df.loc[stats_df["Taux de réussite (%)"].idxmin()]
@@ -184,16 +212,12 @@ elif password:
 st.divider()
 st.subheader("QR Code")
 
-url = "https://romaquiz.streamlit.app/"  # à adapter
+url = "https://romaquiz.streamlit.app/"
 qr = qrcode.make(url)
 buf = BytesIO()
 qr.save(buf, format="PNG")
 st.image(buf.getvalue(), caption="Scannez pour accéder au quiz", width=200)
 st.write("Ou cliquez sur ce lien :", f"[{url}]({url})")
-
-
-
-
 
 
 
