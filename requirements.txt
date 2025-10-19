@@ -4,4 +4,6 @@ numpy
 plotly
 qrcode
 matplotlib
+plotly.express 
+
 
