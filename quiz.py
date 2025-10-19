@@ -3,12 +3,13 @@ import pandas as pd
 from io import BytesIO
 import qrcode
 import os
+import matplotlib.pyplot as plt
 
 # =========================
 # CONFIGURATION DE LA PAGE
 # =========================
-st.set_page_config(page_title="Quiz Interactif 🎓", page_icon="🎯", layout="centered")
-st.title("🎯 Quiz Interactif – Par Romaisae")
+st.set_page_config(page_title="🎯 Quiz Interactif – Par Romaisae", page_icon="🎓", layout="centered")
+st.title("🎓 Quiz Interactif – Par Romaisae")
 
 # =========================
 # QUESTIONS DU QUIZ
@@ -36,12 +37,15 @@ email = st.text_input("Adresse e-mail (facultative) :")
 # =========================
 # QUIZ
 # =========================
-score = 0
 st.divider()
 st.write("📝 Répondez aux questions ci-dessous :")
 
+reponses = {}
+score = 0
+
 for question, options in questions.items():
     reponse = st.radio(question, options[:-1], key=question)
+    reponses[question] = reponse
     if reponse == options[-1]:
         score += 1
 
@@ -52,48 +56,93 @@ if st.button("✅ Soumettre mes réponses"):
     if nom.strip() == "":
         st.warning("⚠️ Veuillez entrer votre nom avant de soumettre.")
     else:
-        # Créer le DataFrame avec le score
-        new_data = pd.DataFrame([[nom, email, score]], columns=["Nom", "Email", "Score"])
+        # Calcul du score
+        total = len(questions)
+        pourcentage = round((score / total) * 100, 2)
 
-        # Vérifier CSV existant
+        # Sauvegarde dans le CSV
+        result = {q: (1 if reponses[q] == questions[q][-1] else 0) for q in questions}
+        data_row = {"Nom": nom, "Email": email, "Score": score, "Pourcentage": pourcentage, **result}
+
         if os.path.exists("scores.csv") and os.path.getsize("scores.csv") > 0:
-            old_data = pd.read_csv("scores.csv")
-            data = pd.concat([old_data, new_data], ignore_index=True)
+            df_old = pd.read_csv("scores.csv")
+            df = pd.concat([df_old, pd.DataFrame([data_row])], ignore_index=True)
         else:
-            data = new_data
+            df = pd.DataFrame([data_row])
 
-        # Sauvegarder le CSV
-        data.to_csv("scores.csv", index=False)
+        df.to_csv("scores.csv", index=False)
 
-        # Afficher le score individuel pour l'étudiant
-        st.success(f"Merci {nom}! Ton score est **{score}/10** 🏆")
-        st.info("Les scores des autres participants ne sont pas visibles pour des raisons de confidentialité.")
+        # Résultats pour le participant
+        st.success(f"🎉 Bravo {nom} ! Ton score est **{score}/10 ({pourcentage}%)**")
 
-# =========================
-# CLASSEMENT – SECTION PROFESSEUR
-# =========================
-st.divider()
-st.subheader("🔒 Section Professeur – Voir classement complet")
-
-password = st.text_input("Entrez le mot de passe pour voir le classement", type="password")
-
-if password == "prof2025":  # Remplace par ton mot de passe secret
-    if os.path.exists("scores.csv") and os.path.getsize("scores.csv") > 0:
-        df = pd.read_csv("scores.csv")
-        if "Score" in df.columns:
-            df = df.sort_values(by="Score", ascending=False)
-            st.dataframe(df, hide_index=True, use_container_width=True)
-            
-            gagnant = df.iloc[0]
-            st.success(f"🥇 Le gagnant actuel est **{gagnant['Nom']}** avec un score de **{gagnant['Score']}/10** !")
-            
-            st.bar_chart(df.set_index("Nom")["Score"])
+        # Médaille si score parfait
+        if score == len(questions):
+            st.markdown("🏅 **Félicitations ! Tu obtiens la Médaille d'Or du Quiz !** 🥇")
+        elif score >= 8:
+            st.markdown("🥈 Excellent ! Médaille d’Argent !")
+        elif score >= 6:
+            st.markdown("🥉 Bon travail ! Médaille de Bronze !")
         else:
-            st.error("Erreur: colonne 'Score' manquante dans le CSV")
-    else:
-        st.info("Aucun score enregistré pour le moment.")
-else:
-    st.info("⚠️ Entrez le mot de passe pour voir le classement complet.")
+            st.markdown("💪 Continue de t'entraîner, tu y es presque !")
+
+        # =========================
+        # STATISTIQUES DU PARTICIPANT
+        # =========================
+        st.divider()
+        st.subheader("📊 Tes statistiques personnelles")
+
+        fig, ax = plt.subplots()
+        labels = ['Bonnes réponses', 'Mauvaises réponses']
+        values = [score, len(questions) - score]
+        ax.pie(values, labels=labels, autopct='%1.1f%%', startangle=90)
+        st.pyplot(fig)
+
+        # =========================
+        # SECTION PROFESSEUR
+        # =========================
+        st.divider()
+        st.subheader("🔒 Section Professeur – Classement et Statistiques Globales")
+        password = st.text_input("Mot de passe professeur :", type="password")
+
+        if password == "prof2025":
+            st.success("🔓 Accès autorisé")
+
+            if os.path.exists("scores.csv"):
+                df = pd.read_csv("scores.csv")
+
+                # Classement
+                classement = df.sort_values(by="Score", ascending=False).reset_index(drop=True)
+                st.dataframe(classement, use_container_width=True)
+
+                # Gagnant
+                gagnant = classement.iloc[0]
+                st.markdown(f"🏆 **Gagnant actuel : {gagnant['Nom']}** – {gagnant['Score']}/10")
+
+                # Statistiques globales
+                st.subheader("📈 Statistiques globales par question")
+
+                question_scores = {q: df[q].mean() * 100 for q in questions}
+                stats_df = pd.DataFrame({
+                    "Question": list(question_scores.keys()),
+                    "Taux de réussite (%)": list(question_scores.values())
+                })
+
+                st.bar_chart(stats_df.set_index("Question"))
+
+                # Taux de réussite moyen global
+                moyenne_globale = round(df["Pourcentage"].mean(), 2)
+                st.info(f"📊 Taux de réussite moyen de tous les participants : **{moyenne_globale}%**")
+
+                # Questions les plus et moins réussies
+                meilleure = stats_df.loc[stats_df["Taux de réussite (%)"].idxmax()]
+                pire = stats_df.loc[stats_df["Taux de réussite (%)"].idxmin()]
+                st.success(f"✅ Question la plus réussie : *{meilleure['Question']}* ({meilleure['Taux de réussite (%)']:.1f}%)")
+                st.error(f"❌ Question la moins réussie : *{pire['Question']}* ({pire['Taux de réussite (%)']:.1f}%)")
+            else:
+                st.warning("Aucun résultat enregistré pour le moment.")
+        else:
+            if password:
+                st.error("Mot de passe incorrect.")
 
 # =========================
 # PARTAGE QR CODE
@@ -101,14 +150,9 @@ else:
 st.divider()
 st.subheader("📱 Partage du quiz")
 
-url = "https://romaquiz.streamlit.app/"  # ⚠️ À modifier après déploiement
+url = "https://romaquiz.streamlit.app/"  # ⚠️ à modifier après déploiement
 qr = qrcode.make(url)
 buf = BytesIO()
 qr.save(buf, format="PNG")
-st.image(buf.getvalue(), caption="Scannez pour participer au quiz 📲", width=200)
-st.write("Ou cliquez directement ici :", f"[{url}]({url})")
-
-
-
-
-
+st.image(buf.getvalue(), caption="Scannez pour participer 📲", width=200)
+st.write("Ou cliquez ici :", f"[{url}]({url})")
