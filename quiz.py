@@ -19,7 +19,7 @@ st.title("Quiz sur la Réglementation des Marchés Financiers et Rôle des Autor
 # =========================
 # QUESTIONS DU QUIZ
 # =========================
-« Questions : (une seule chose correcte parmi) = {
+« Questions={
     "1️⃣ Quelle institution supervise le marché financier au Maroc ?":
         ["Bank Al-Maghrib", "Ministère des Finances", "AMMC", "CDG", "AMMC"],
 
@@ -189,6 +189,7 @@ buf = BytesIO()
 qr.save(buf, format="PNG")
 st.image(buf.getvalue(), caption="Scannez pour accéder au quiz", width=200)
 st.write("Ou cliquez sur ce lien :", f"[{url}]({url})")
+
 
 
 
