@@ -196,13 +196,14 @@ elif password:
 st.divider()
 st.subheader("QR Code")
 
-url = "https://fads-quiz.app/"
+url = "https://fads-quiz.streamlit.app/"
 qr = qrcode.make(url)
 buf = BytesIO()
 qr.save(buf, format="PNG")
 
 st.image(buf.getvalue(), caption="Scannez pour accéder au quiz", width=200)
 st.write("Ou cliquez sur ce lien :", f"[{url}]({url})")
+
 
 
 
