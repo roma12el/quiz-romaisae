@@ -15,12 +15,83 @@ st.set_page_config(
 )
 
 # =========================
+# STYLE GLOBAL MODERNE
+# =========================
+st.markdown("""
+    <style>
+    /* Arrière-plan dégradé doux */
+    .stApp {
+        background: linear-gradient(135deg, #f0f4ff, #e8f0fe);
+    }
+
+    /* Titres */
+    h1, h2, h3 {
+        color: #1e3a8a !important;
+        font-family: 'Poppins', sans-serif;
+    }
+
+    /* Questions */
+    .stRadio > div {
+        background-color: #ffffff;
+        padding: 15px;
+        border-radius: 12px;
+        box-shadow: 0px 4px 10px rgba(0,0,0,0.05);
+        margin-bottom: 12px;
+    }
+
+    /* Boutons stylisés */
+    button[kind="primary"] {
+        background-color: #3B82F6 !important;
+        color: white !important;
+        border-radius: 10px !important;
+        font-weight: bold !important;
+        border: none !important;
+        transition: 0.3s;
+    }
+    button[kind="primary"]:hover {
+        background-color: #2563eb !important;
+        transform: scale(1.03);
+    }
+
+    /* Carte de note */
+    .note-bar {
+        width: 300px;
+        border-radius: 12px;
+        overflow: hidden;
+        background: #ddd;
+        margin: 15px auto;
+    }
+    .note-fill {
+        height: 40px;
+        text-align: center;
+        font-weight: bold;
+        color: white;
+        line-height: 40px;
+        border-radius: 12px;
+    }
+
+    /* Tableau moderne */
+    div[data-testid="stDataFrame"] table {
+        border-radius: 10px;
+        overflow: hidden;
+        border: 1px solid #ccc;
+    }
+    </style>
+""", unsafe_allow_html=True)
+
+# =========================
 # IMAGE D’EN-TÊTE
 # =========================
 try:
     st.image("pag de garde.png", use_container_width=True)
 except Exception:
     st.warning("⚠️ Image d’en-tête introuvable (pag de garde.png).")
+
+st.markdown("""
+    <h2 style='text-align:center; color:#1e40af; font-weight:bold;'>
+    🎓 Testez vos connaissances sur la réglementation des marchés financiers !
+    </h2>
+""", unsafe_allow_html=True)
 
 st.title("Quiz sur la Réglementation des Marchés Financiers et Rôle des Autorités de Marché ")
 
@@ -53,7 +124,7 @@ questions = {
 # =========================
 # IDENTITÉ UTILISATEUR
 # =========================
-st.subheader(" Veuillez saisir vos informations ")
+st.subheader("Veuillez saisir vos informations")
 
 col1, col2 = st.columns([2, 1])
 with col1:
@@ -61,7 +132,6 @@ with col1:
 
 with col2:
     st.write("**Genre :**")
-    # Deux colonnes avec logos harmonisés
     colf, colm = st.columns(2)
     with colf:
         if st.button("👩 Féminin"):
@@ -77,7 +147,7 @@ st.info(f"Genre sélectionné : **{genre}**")
 # QUIZ
 # =========================
 st.divider()
-st.write(" Répondez à toutes les questions ( Une seule réponse possible):")
+st.write("Répondez à toutes les questions (une seule réponse possible) :")
 
 reponses = {}
 score = 0
@@ -91,7 +161,7 @@ for question, options in questions.items():
 # =========================
 # SOUMISSION DU QUIZ
 # =========================
-if st.button(" Soumettre mes réponses"):
+if st.button("📝 Soumettre mes réponses"):
     if nom.strip() == "":
         st.warning("Veuillez entrer votre nom et prénom avant de soumettre.")
     else:
@@ -118,14 +188,25 @@ if st.button(" Soumettre mes réponses"):
 
         st.success(f"{nom}, votre score est de {pourcentage}% ({score}/{total}).")
 
-        # NOTE SUR 20
+        # NOTE SUR 20 (design moderne)
         note_sur_20 = round((score / total) * 20, 2)
         color = "#4CAF50" if note_sur_20 >= 16 else "#FFC107" if note_sur_20 >= 10 else "#F44336"
 
         st.markdown(f"""
-        <div style="background-color: #e0e0e0; border-radius: 15px; padding: 10px; width: 300px; text-align: center;">
-            <div style="width: {note_sur_20*5}%; background-color: {color}; padding: 15px 0; border-radius: 15px; font-size: 24px; font-weight: bold; color: white;">
-                {note_sur_20} / 20
+        <div style="
+            background-color:white;
+            padding:20px;
+            border-radius:15px;
+            box-shadow:0px 4px 15px rgba(0,0,0,0.1);
+            text-align:center;
+            width:320px;
+            margin:auto;
+        ">
+            <h3 style="color:#1e3a8a;">🎯 Votre note finale</h3>
+            <div class="note-bar">
+                <div class="note-fill" style="width:{note_sur_20*5}%; background-color:{color};">
+                    {note_sur_20} / 20
+                </div>
             </div>
         </div>
         """, unsafe_allow_html=True)
@@ -134,7 +215,7 @@ if st.button(" Soumettre mes réponses"):
 # SECTION PROFESSEUR
 # =========================
 st.divider()
-st.subheader(" Résultats et Statistiques")
+st.subheader("📊 Résultats et Statistiques")
 password = st.text_input("Mot de passe :", type="password")
 
 if password == "prof2025":
@@ -151,8 +232,7 @@ if password == "prof2025":
 
     if not df.empty:
         classement = df.sort_values(by="Score", ascending=False).reset_index(drop=True)
-        
-        # --- HISTOGRAMME INTERACTIF EN PREMIER ---
+
         top3 = classement.head(3).reset_index(drop=True)
         rangs = ["🥇 Première place", "🥈 Deuxième place", "🥉 Troisième place"]
         top3["Rang"] = rangs[:len(top3)]
@@ -175,20 +255,31 @@ if password == "prof2025":
         fig.update_layout(xaxis_title="Participants", yaxis_title="Score", showlegend=True)
         st.plotly_chart(fig, use_container_width=True)
 
-        # --- TABLEAU DES RÉSULTATS COMPLET ---
-        st.subheader(" Détails des résultats")
+        st.subheader("📋 Détails des résultats")
         st.dataframe(classement, use_container_width=True)
 
         gagnant = classement.iloc[0]
         st.markdown(f"🏅 **{gagnant['Nom']}** est premier avec un score de {gagnant['Score']}/{len(questions)}")
 
-        # --- ANALYSE DES QUESTIONS ---
+        # --- GRAPHIQUE MODERNE DES QUESTIONS ---
         question_scores = {q: df[q].mean() * 100 for q in questions}
         stats_df = pd.DataFrame({
             "Question": list(question_scores.keys()),
             "Taux de réussite (%)": list(question_scores.values())
         })
-        st.bar_chart(stats_df.set_index("Question"))
+
+        fig2 = px.bar(
+            stats_df,
+            x="Question",
+            y="Taux de réussite (%)",
+            text="Taux de réussite (%)",
+            color="Taux de réussite (%)",
+            color_continuous_scale="Blues",
+            title="📈 Taux de réussite par question"
+        )
+        fig2.update_traces(texttemplate='%{text:.1f}%', textposition='outside')
+        fig2.update_layout(xaxis_title=None, yaxis_title=None)
+        st.plotly_chart(fig2, use_container_width=True)
 
         moyenne_globale = round(df["Pourcentage"].mean(), 2)
         st.info(f"📊 Taux de réussite moyen : **{moyenne_globale}%**")
@@ -213,6 +304,7 @@ buf = BytesIO()
 qr.save(buf, format="PNG")
 st.image(buf.getvalue(), caption="Scannez pour accéder au quiz", width=200)
 st.write("Ou cliquez sur ce lien :", f"[{url}]({url})")
+
 
 
 
