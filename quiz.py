@@ -22,7 +22,7 @@ try:
 except Exception:
     st.warning("⚠️ Image d’en-tête introuvable (pag de garde.png).")
 
-st.title("📘 Quiz : Réglementation des Marchés Financiers et Rôle des Autorités")
+st.title("Quiz sur la Réglementation des Marchés Financiers et Rôle des Autorités de Marché ")
 
 # =========================
 # QUESTIONS DU QUIZ
@@ -53,7 +53,7 @@ questions = {
 # =========================
 # IDENTITÉ UTILISATEUR
 # =========================
-st.subheader("👤 Veuillez saisir vos informations")
+st.subheader(" Veuillez saisir vos informations ")
 
 col1, col2 = st.columns([2, 1])
 with col1:
@@ -71,13 +71,13 @@ with col2:
             st.session_state["genre"] = "Masculin"
 
 genre = st.session_state.get("genre", "Non spécifié")
-st.info(f"👤 Genre sélectionné : **{genre}**")
+st.info(f"Genre sélectionné : **{genre}**")
 
 # =========================
 # QUIZ
 # =========================
 st.divider()
-st.write("🧩 Répondez à toutes les questions :")
+st.write(" Répondez à toutes les questions ( Une seule réponse possible):")
 
 reponses = {}
 score = 0
@@ -91,7 +91,7 @@ for question, options in questions.items():
 # =========================
 # SOUMISSION DU QUIZ
 # =========================
-if st.button("📊 Soumettre mes réponses"):
+if st.button(" Soumettre mes réponses"):
     if nom.strip() == "":
         st.warning("Veuillez entrer votre nom et prénom avant de soumettre.")
     else:
@@ -134,8 +134,8 @@ if st.button("📊 Soumettre mes réponses"):
 # SECTION PROFESSEUR
 # =========================
 st.divider()
-st.subheader("📚 Résultats et Statistiques")
-password = st.text_input("Mot de passe enseignant :", type="password")
+st.subheader(" Résultats et Statistiques")
+password = st.text_input("Mot de passe :", type="password")
 
 if password == "prof2025":
     st.success("✅ Accès autorisé")
@@ -157,7 +157,7 @@ if password == "prof2025":
         rangs = ["🥇 Première place", "🥈 Deuxième place", "🥉 Troisième place"]
         top3["Rang"] = rangs[:len(top3)]
 
-        st.subheader("🏆 Classement interactif des 3 premiers")
+        st.subheader("🏆 Classement des 3 premiers")
         fig = px.bar(
             top3,
             x="Nom",
@@ -176,7 +176,7 @@ if password == "prof2025":
         st.plotly_chart(fig, use_container_width=True)
 
         # --- TABLEAU DES RÉSULTATS COMPLET ---
-        st.subheader("📊 Détails des résultats")
+        st.subheader(" Détails des résultats")
         st.dataframe(classement, use_container_width=True)
 
         gagnant = classement.iloc[0]
@@ -205,7 +205,7 @@ elif password:
 # QR CODE PARTAGE
 # =========================
 st.divider()
-st.subheader("📱 Partage du Quiz")
+st.subheader("QR Code")
 
 url = "https://fads-quiz.app/"
 qr = qrcode.make(url)
@@ -213,6 +213,7 @@ buf = BytesIO()
 qr.save(buf, format="PNG")
 st.image(buf.getvalue(), caption="Scannez pour accéder au quiz", width=200)
 st.write("Ou cliquez sur ce lien :", f"[{url}]({url})")
+
 
 
 
